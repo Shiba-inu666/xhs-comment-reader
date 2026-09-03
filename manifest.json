@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "小红书评论读取器（极简版）",
+  "version": "0.1.11",
+  "minimum_chrome_version": "116",
+  "description": "读取当前小红书页面已加载的评论文本，并可分别生成评论区总结和六维舆情报告。",
+  "permissions": [
+    "sidePanel",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://xiaohongshu.com/*",
+    "https://*.xiaohongshu.com/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "action": {
+    "default_title": "打开小红书评论读取器"
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel.html"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

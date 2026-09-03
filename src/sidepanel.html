@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>小红书评论读取器</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div class="logo" aria-hidden="true">评</div>
+      <div>
+        <h1>小红书评论读取器</h1>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="row"><span>当前页面</span><strong id="page-state">检测中…</strong></div>
+      <div class="row"><span>笔记 ID</span><code id="note-id">—</code></div>
+      <div class="selector" id="current-selector">span[data-v-6726628e]</div>
+      <button id="toggle" type="button">开始检测并读取评论</button>
+    </section>
+
+    <section class="card count-card">
+      <span>评论数</span>
+      <strong id="match-count">0</strong>
+      <button class="secondary copy-button" id="copy-comments" type="button" disabled>一键复制全部评论</button>
+    </section>
+
+    <details class="card location-panel" id="location-panel" open>
+      <summary class="location-toggle">
+        <strong>评论区 IP 属地分布</strong>
+        <span id="location-total">0 条</span>
+      </summary>
+      <div class="location-content hidden" id="location-content">
+        <div class="location-pie" id="location-pie" role="img" aria-label="评论区 IP 属地分布饼图"></div>
+        <div class="location-legend" id="location-legend"></div>
+      </div>
+      <div class="location-empty" id="location-empty">尚未读取到评论区属地标签。</div>
+    </details>
+
+    <details class="card analysis-panel" id="analysis-panel">
+      <summary class="analysis-toggle">
+        <span>评论区总结与舆情报告</span>
+        <span class="status-pill" id="ai-state">未开始</span>
+      </summary>
+      <div class="analysis-meta"><small id="ai-input-count">等待评论</small></div>
+      <p class="privacy-note">评论区总结只概括内容；舆情报告进一步分析情感、主题、诉求和风险。两者仅发送去重评论正文，不发送页面 URL、Cookie 或账号信息。</p>
+      <div class="analysis-actions">
+        <button id="comment-summary" type="button" disabled>生成评论区总结</button>
+        <button class="secondary" id="opinion-report" type="button" disabled>生成舆情报告</button>
+      </div>
+      <button class="secondary hidden" id="cancel-summary" type="button">停止生成</button>
+      <div class="progress hidden" id="ai-progress"><span id="ai-progress-bar"></span></div>
+      <p class="ai-message" id="ai-message">请先在下方设置外部 API。</p>
+      <article class="summary hidden" id="ai-summary"></article>
+      <button class="secondary hidden" id="copy-summary" type="button">复制总结</button>
+    </details>
+
+    <details class="card comments-card comments-panel" id="comments-panel" open>
+      <summary class="comments-toggle">
+        <strong>当前页面评论</strong>
+        <span id="scanned-at">尚未读取</span>
+      </summary>
+      <div id="comments" class="comments">
+        <div class="empty">点击“开始检测并读取评论”。</div>
+      </div>
+    </details>
+
+    <details class="card settings" id="settings">
+      <summary>设置与自动校准</summary>
+      <p class="calibration-hint hidden" id="calibration-hint">当前选择器连续匹配不到评论。请从页面复制一条当前可见的评论正文进行校准。</p>
+      <label for="sample-text">粘贴一条当前可见评论</label>
+      <textarea id="sample-text" rows="3" placeholder="只用于当前这次查找，不会保存"></textarea>
+      <button id="calibrate" type="button">自动查找并使用新的 data-v 属性</button>
+      <button class="secondary" id="reset-selector" type="button">恢复默认选择器</button>
+      <p class="calibration-status" id="calibration-status">校准成功后只保存新的选择器，不保存评论文字。</p>
+      <details class="settings-group" id="ai-settings">
+        <summary>外部 AI API 设置</summary>
+        <p class="warning">默认使用 DeepSeek 官方 Chat Completions API。密钥只保存在当前浏览器会话中，但浏览器客户端仍不是长期保存正式密钥的安全位置；正式公开使用建议配置自己的中转 API。</p>
+        <label for="api-endpoint">DeepSeek Chat Completions 地址</label>
+        <input id="api-endpoint" type="url" spellcheck="false" placeholder="https://api.deepseek.com/chat/completions">
+        <label for="api-token">DeepSeek API Key（仅本次浏览器会话）</label>
+        <div class="token-row">
+          <input id="api-token" type="password" autocomplete="off" spellcheck="false" placeholder="不会写入发布包">
+          <button class="small-button secondary" id="clear-token" type="button">清除</button>
+        </div>
+        <label for="api-model">模型</label>
+        <input id="api-model" type="text" spellcheck="false" placeholder="deepseek-v4-flash">
+        <div class="field-grid">
+          <label>最多评论数<input id="ai-max-comments" type="number" min="1" max="500" value="200"></label>
+          <label>每批评论数<input id="ai-batch-size" type="number" min="5" max="50" value="30"></label>
+        </div>
+        <label for="ai-language">总结语言</label>
+        <select id="ai-language">
+          <option value="简体中文">简体中文</option>
+          <option value="繁体中文">繁体中文</option>
+          <option value="English">English</option>
+        </select>
+        <button id="save-ai-settings" type="button">保存设置</button>
+        <p class="calibration-status" id="ai-settings-status">API 地址、模型和数量设置会保存在本地；令牌仅保存在会话存储。</p>
+      </details>
+      <div class="local-update">
+        <strong>本地开发更新</strong>
+        <p>从固定的 build/unpacked 目录安装一次后，以后无需重复解压 ZIP。</p>
+        <button class="secondary" id="reload-extension" type="button">应用本地更新并重载扩展</button>
+      </div>
+    </details>
+  </main>
+  <script src="ai-utils.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

@@ -9,6 +9,14 @@
     "xiaohongshu",
     "comment-reader"
   ],
+  "homepage": "https://github.com/Shiba-inu666/xhs-comment-reader#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shiba-inu666/xhs-comment-reader.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Shiba-inu666/xhs-comment-reader/issues"
+  },
   "scripts": {
     "test": "node --test tests/*.test.js",
     "validate": "node scripts/validate.mjs",

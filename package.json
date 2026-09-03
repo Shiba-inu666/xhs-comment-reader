@@ -2,7 +2,7 @@
   "name": "xhs-comment-reader-minimal",
   "version": "0.1.11",
   "private": true,
-  "description": "在 Chrome 或 Edge 侧边栏读取当前小红书页面已加载的评论，并按需生成 AI 总结。",
+  "description": "把小红书页面里已经加载的评论收进侧栏，并查看 IP 属地分布。",
   "keywords": [
     "chrome-extension",
     "edge-extension",

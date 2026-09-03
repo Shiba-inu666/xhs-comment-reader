@@ -2,101 +2,116 @@
 
 [简体中文](README.md) · [English](README_EN.md)
 
-A lightweight, backend-free Chrome / Edge side-panel extension for collecting comments that are **already loaded** on the current Xiaohongshu (RedNote) post, copying comment text, and visualizing the comment section's displayed IP-region distribution. It can also call a user-configured AI endpoint to generate an optional comment summary or public-opinion report.
+Pull the comments already loaded under a Xiaohongshu (RedNote) post into a browser side panel, then get a quick view of the IP-region distribution shown by the platform.
 
-**Core capabilities: Xiaohongshu comment collection + IP-region distribution.** The extension reads comment elements that are already present in the page DOM. It does not intercept network traffic, scroll or click automatically, read cookies, or collect account details.
+I built this because sometimes I only want to copy the comments or see where the discussion is coming from. That should not require a crawler, cookies, or a backend service. This is a small Chrome / Edge extension: open a post, click one button, and the comments currently on the page appear in the side panel.
+
+“Collect” has a narrow meaning here. The extension reads content already rendered on the page. It does not intercept Xiaohongshu traffic or scroll the page for you.
+
+## What it does
+
+- Reads comments already loaded on the current page
+- Copies all collected comments, one per line
+- Builds a pie chart from the IP-region labels shown on the page
+- Updates the side panel as the page loads more comments
+- Recalibrates its selector from one visible comment when the page structure changes
+- Optionally sends comments to your own DeepSeek-compatible endpoint for a summary or opinion report
 
 Current version: `v0.1.11`
 
-## Features
+## Install
 
-- Collect comments already loaded on the current page
-- Copy all collected comments with one click
-- Aggregate displayed IP-region labels and render a local pie chart
-- Remove adjacent duplicate comments
-- Recalibrate the DOM selector when Xiaohongshu changes its page structure
-- Call a user-configured DeepSeek-compatible endpoint only after an explicit click
-- Generate either a quick comment summary or a six-part public-opinion report
-
-## Install in 5 Minutes
-
-1. Download or clone this repository.
+1. Click `Code` → `Download ZIP` on GitHub, then extract the download.
 2. Open `chrome://extensions` in Chrome or `edge://extensions` in Edge.
 3. Enable **Developer mode**.
 4. Click **Load unpacked**.
-5. Select the repository root—the directory containing `manifest.json`.
+5. Select the project directory containing `manifest.json`.
 
-Open a Xiaohongshu post, click the extension icon, and then click **开始检测并读取评论** (Start detecting and reading comments) in the side panel.
+Open a Xiaohongshu post and click the extension icon. The reader will open in the browser side panel.
 
-For detailed steps and troubleshooting, see the [Chinese installation guide](docs/INSTALLATION.md).
+## Use it
 
-## How It Works
+1. Open a Xiaohongshu post and make sure its comment section is visible.
+2. Open the extension and click **开始检测并读取评论** (Start reading comments).
+3. Manually scroll the comment section if you want Xiaohongshu to load more comments.
+4. Copy the text or inspect the IP-region chart in the side panel.
 
-The extension checks the current page once per second and reads comments that Xiaohongshu has already rendered. If you manually scroll down and the page loads more comments, the newly loaded comments appear in the side panel on the next scan.
+The extension checks the page once per second. When Xiaohongshu renders more comments, they appear in the reader.
 
-It does not automatically scroll, click, paginate, or call hidden Xiaohongshu APIs. Therefore, the collected count may be lower than the post's total comment count until more comments are loaded on the page.
+## Comment count
 
-## IP-Region Distribution
+The reader only sees comments currently loaded into the page DOM. Its count may therefore be lower than the total shown by Xiaohongshu.
 
-For each visible `.comment-item`, the extension reads its comment text and displayed location label. The comment count, list, copy output, and pie chart all use the same comment records.
+Adjacent comments with identical trimmed text are treated as duplicates. The same text appearing again later is kept, because it may be a separate real comment.
 
-- Missing location labels are grouped under “Not displayed.”
-- Regions beyond the eight largest groups are merged into “Other.”
-- Region statistics stay in side-panel memory.
-- Region labels are not linked to usernames, persisted, or sent to the external AI endpoint.
+## IP-region labels
 
-## Optional AI Summary
+The chart uses the public “IP region” labels displayed by Xiaohongshu. It does **not** obtain anyone's actual IP address.
 
-AI features are disabled until you configure an endpoint and explicitly click a generation button. The default request format is DeepSeek / OpenAI-compatible Chat Completions.
+The count, comment list, copy output, and chart all use the same comment records. A missing label is grouped under “Not displayed,” and smaller groups beyond the largest eight are merged into “Other.” Region data stays in side-panel memory. It is not saved, tied to usernames, or sent to the AI endpoint.
 
-The extension sends only deduplicated comment text and analysis instructions. It does not send the page URL, cookies, Xiaohongshu account data, request headers, page HTML, or IP-region statistics.
+## AI is optional
 
-The API bearer token is kept in `chrome.storage.session`, not in source code, release packages, logs, or persistent local storage. See [AI setup](docs/AI_SETUP.md) and [privacy and security](docs/PRIVACY.md) for details.
+Reading, copying, and the region chart work without an API.
 
-## Project Structure
+To generate a summary, open the settings at the bottom of the side panel and enter your own endpoint, model, and API key. The default request format is DeepSeek Chat Completions. You can generate either:
+
+- a short summary of what people are discussing; or
+- a six-part report covering sentiment, topics, requests, disputes, and quoted evidence.
+
+Comments are sent only after you click a generation button. The request does not include the page URL, cookies, account details, page HTML, or IP-region labels.
+
+The API key is stored in `chrome.storage.session`, not in source code or persistent local storage. See [AI setup](docs/AI_SETUP.md) and [privacy and security](docs/PRIVACY.md) for details.
+
+## If the reader stops finding comments
+
+The default selector may stop working after a Xiaohongshu redesign. When the reader gets no matches three times in a row, the calibration settings open automatically:
+
+1. Copy one complete, visible comment from the page.
+2. Paste it into the calibration box.
+3. Click the calibration button.
+
+The pasted text is used for that lookup only and is cleared immediately afterwards. Only the new selector is saved.
+
+## Repository map
 
 ```text
 xhs-comment-reader/
-├── src/                 # Extension runtime and side-panel UI
-│   ├── background.js    # Opens the side panel
-│   ├── sidepanel.html   # UI structure
-│   ├── sidepanel.css    # UI styles
-│   ├── sidepanel.js     # Comment reader and interactions
-│   └── ai-utils.js      # AI input/output and evidence validation
-├── tests/               # Node.js tests
-├── scripts/             # Validation and packaging scripts
-├── docs/                # User and developer documentation
-├── manifest.json        # Chrome extension manifest
-├── package.json         # Development commands and metadata
-├── VERSION              # Canonical version number
-└── README.md            # Chinese project guide
+├── src/                 extension runtime and side-panel UI
+│   ├── background.js    opens the side panel
+│   ├── sidepanel.html   page structure
+│   ├── sidepanel.css    page styles
+│   ├── sidepanel.js     comment reading and interaction
+│   └── ai-utils.js      AI input, output, and evidence checks
+├── tests/               automated tests
+├── scripts/             validation and packaging
+├── docs/                usage, privacy, and development notes
+├── manifest.json        browser extension manifest
+└── VERSION              current version
 ```
 
 Generated `build/` and `deliverables/` directories are excluded from Git.
 
 ## Development
 
-Node.js 20 or later is required. The extension has no third-party runtime dependencies, so `npm install` is not required.
+Node.js 20 or later is required. There are no third-party runtime dependencies, so you do not need to run `npm install` first.
 
 ```bash
-npm test
-npm run validate
-npm run package
+npm test           # run the test suite
+npm run validate   # check versions, permissions, security boundaries, and syntax
+npm run package    # build the unpacked extension and release ZIP
 ```
 
-- `npm test`: run the automated test suite
-- `npm run validate`: check versions, permissions, security boundaries, syntax, and tests
-- `npm run package`: create the unpacked build and distributable ZIP
+The repository currently has 30 automated tests. See the [development guide](docs/DEVELOPMENT.md) for more details.
 
-See the [development guide](docs/DEVELOPMENT.md) for more details.
+## Current limits
 
-## Known Limitations
+- It can only read comments already loaded on the page.
+- It does not auto-scroll or expand replies that are not visible.
+- Page-structure changes may require recalibration.
+- AI output is a reading aid and still needs human review.
+- Complete source is available only for `v0.1.11`; earlier source and Git history are unavailable.
 
-- Only comments already loaded in the current page DOM can be collected.
-- The default selector may require recalibration after Xiaohongshu changes its page structure.
-- External AI availability, fees, and data handling depend on the service selected by the user.
-- This repository contains complete source only for `v0.1.11`; earlier source and Git history are unavailable.
+## License
 
-## License Notice
-
-This is a personal local prototype. No public open-source license is currently granted. See [LICENSE-NOTICE.md](LICENSE-NOTICE.md).
+This is a public source-visible personal project, but no open-source license is currently granted. See [LICENSE-NOTICE.md](LICENSE-NOTICE.md).
